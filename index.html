@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Servicing Agent | Customer Support</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { color-scheme: light; --ink: #17324d; --muted: #6a7e92; --blue: #0875d1; }
+    body { margin: 0; padding: 26px 18px; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: radial-gradient(ellipse at 12% 0%, #dceeff, transparent 55%), radial-gradient(ellipse at 100% 100%, #dff5ef, transparent 55%), #f3f7fc; }
+    .page-label { max-width: 920px; margin: 0 auto 16px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #617a90; }
+    .page-label strong { font-size: 13px; color: #315779; letter-spacing: .03em; }
+    main { max-width: 920px; margin: auto; background: #fff; border: 1px solid #e1eaf3; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 65px #123c6612; }
+    header { padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; gap: 18px; background: linear-gradient(115deg, #12365b, #155e94); color: white; }
+    .brand { display: flex; align-items: center; gap: 17px; }
+    .logo { width: 72px; height: 54px; object-fit: contain; flex-shrink: 0; }
+    .logo-fallback { font-size: 12px; font-weight: 700; }
+    h1 { margin: 0 0 5px; font-size: 23px; font-weight: 650; letter-spacing: -.5px; }
+    header p { margin: 0; color: #c6e3f8; font-size: 13px; }
+    .demo-badge { flex-shrink: 0; border: 1px solid #ffffff40; background: #ffffff12; border-radius: 30px; padding: 7px 11px; font-size: 11px; letter-spacing: .08em; }
+    .intro { padding: 20px 30px; border-bottom: 1px solid #eaf0f6; display: flex; gap: 20px; justify-content: space-between; align-items: center; }
+    .intro strong { display: block; font-size: 15px; margin-bottom: 5px; }
+    .intro p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .capabilities { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .capabilities span { background: #f0f7fd; color: #376b96; border: 1px solid #e1edf8; border-radius: 7px; font-size: 11px; padding: 6px 9px; white-space: nowrap; }
+    #messages { height: 47vh; min-height: 280px; max-height: 580px; overflow-y: auto; padding: 25px 30px 12px; scrollbar-width: thin; background: linear-gradient(#fff, #fcfdff); }
+    .message { display: flex; gap: 10px; margin-bottom: 22px; align-items: flex-start; }
+    .avatar { display: grid; place-items: center; flex-shrink: 0; width: 31px; height: 31px; border-radius: 10px; background: #e4f4ef; color: #197563; font-size: 11px; font-weight: 750; margin-top: 19px; }
+    .message-content { max-width: 78%; min-width: 0; }
+    .speaker { margin-bottom: 6px; color: #70869a; font-size: 10px; font-weight: 650; letter-spacing: .04em; }
+    .bubble { padding: 13px 17px; border-radius: 3px 16px 16px 16px; background: #edf7f4; border: 1px solid #dceee7; color: #234c43; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; font-size: 14px; }
+    .user { justify-content: flex-end; }
+    .user .avatar { order: 2; background: #e8f0fd; color: #2466b3; }
+    .user .speaker { text-align: right; }
+    .user .bubble { background: #1476ce; border-color: #1476ce; color: white; border-radius: 16px 3px 16px 16px; box-shadow: 0 4px 12px #1476ce14; }
+    .pending .bubble { color: #65887e; animation: breathe 1.3s infinite; }
+    .error .bubble { background: #fff3ed; border-color: #f5ded0; color: #924e2a; }
+    .suggestions { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 30px 17px; }
+    .suggestions button { background: white; border: 1px solid #dce7f2; border-radius: 20px; color: #376587; padding: 8px 12px; font-size: 12px; cursor: pointer; transition: .15s; }
+    .suggestions button:hover { background: #eff7ff; border-color: #97c8ef; }
+    .composer { padding: 17px 24px 13px; background: white; border-top: 1px solid #e8eef5; }
+    form { display: flex; gap: 10px; padding: 7px; border: 1px solid #d5e1ed; border-radius: 14px; background: #f9fbfe; transition: .15s; }
+    form:focus-within { border-color: #2184d6; box-shadow: 0 0 0 3px #2184d610; }
+    input { flex: 1; min-width: 0; border: 0; padding: 10px 8px; background: transparent; color: var(--ink); font: inherit; font-size: 14px; outline: none; }
+    input::placeholder { color: #8a9bad; }
+    #send-button { border: 0; border-radius: 10px; padding: 11px 18px; background: #126ec0; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 9px; }
+    #send-button:hover { background: #095b9e; }
+    button:disabled { opacity: .5; cursor: wait; }
+    button:focus-visible { outline: 3px solid #71b5ed; outline-offset: 3px; }
+    footer { padding: 10px 3px 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; color: #8495a5; font-size: 10px; line-height: 1.5; }
+    @keyframes breathe { 50% { opacity: .5; } }
+    @media (prefers-reduced-motion: reduce) { .pending .bubble { animation: none; } }
+    @media (max-width: 600px) { body { padding: 12px 8px; } .page-label { padding: 0 7px; } .page-label span { display: none; } main { border-radius: 18px; } header { padding: 20px 17px; } h1 { font-size: 20px; } .logo { width: 54px; height: 42px; } .brand { gap: 11px; } .demo-badge { display: none; } .intro { padding: 17px; display: block; } .capabilities { justify-content: flex-start; margin-top: 12px; } #messages { padding: 20px 14px 8px; height: 44vh; } .message-content { max-width: 84%; } .bubble { font-size: 13px; padding: 11px 13px; } .avatar { width: 26px; height: 26px; font-size: 9px; } .suggestions { padding: 5px 14px 14px; gap: 6px; } .suggestions button { font-size: 11px; } .composer { padding: 12px; } input { font-size: 16px; } #send-button { padding: 11px 13px; } }
+    html { min-height: 100%; }
+    body { min-height: 100vh; background-repeat: no-repeat; background-attachment: fixed; }
+    /* Floating chat widget */
+    .page-label { display: none; }
+    main { position: fixed; right: 24px; bottom: 94px; width: 450px; max-width: calc(100vw - 32px); height: min(710px, calc(100dvh - 118px)); margin: 0; display: flex; flex-direction: column; z-index: 1000; box-shadow: 0 18px 70px #12365b33; border-radius: 22px; }
+    main[hidden] { display: none; }
+    header { padding: 17px 19px; flex-shrink: 0; }
+    h1 { font-size: 19px; }
+    header p { font-size: 11px; }
+    .brand { gap: 11px; }
+    .logo { width: 55px; height: 42px; }
+    .demo-badge { display: none; }
+    .intro { padding: 13px 19px; flex-shrink: 0; }
+    .intro strong { font-size: 13px; }
+    .intro p { font-size: 11px; }
+    .capabilities { display: none; }
+    #messages { height: auto; min-height: 0; max-height: none; flex: 1; padding: 19px 15px 6px; }
+    .message-content { max-width: 83%; }
+    .bubble { font-size: 13px; padding: 11px 13px; }
+    .avatar { width: 26px; height: 26px; font-size: 9px; }
+    .suggestions { padding: 8px 15px 12px; gap: 6px; flex-shrink: 0; }
+    .suggestions button { padding: 7px 10px; font-size: 10px; }
+    .composer { padding: 12px; flex-shrink: 0; }
+    footer { font-size: 9px; }
+    #close-chat { border: 0; background: #ffffff17; color: white; cursor: pointer; width: 34px; height: 34px; border-radius: 50%; font-size: 24px; flex-shrink: 0; }
+    #close-chat:hover { background: #ffffff30; }
+    #chat-launcher { position: fixed; right: 24px; bottom: 22px; z-index: 1001; display: flex; align-items: center; gap: 10px; padding: 16px 21px; border: 1px solid #ffffff35; border-radius: 32px; background: linear-gradient(120deg, #126ec0, #125b91); color: white; box-shadow: 0 7px 25px #126ec044; cursor: pointer; font: inherit; font-weight: 650; font-size: 14px; }
+    #chat-launcher svg { width: 23px; height: 23px; }
+    #chat-launcher:hover { background: #095b9e; }
+    @media (max-width: 600px) { main { right: 12px; bottom: 88px; width: calc(100vw - 24px); max-width: none; height: min(680px, calc(100dvh - 106px)); } #chat-launcher { right: 14px; bottom: 16px; padding: 15px 19px; } .intro { display: block; } input { font-size: 16px; } }
+    html { min-height: 100%; background: #f3f7fc; }
+    body { min-height: 100vh; background: #f3f7fc; }
+  </style>
+</head>
+<body>
+  <div class="page-label"><strong>JAI DALVI / SERVICING DEMO</strong><span>A little less waiting. A little more help.</span></div>
+  <main id="chat-panel" role="region" aria-labelledby="chat-title" hidden>
+    <header>
+      <div class="brand">
+        <img class="logo" src="https://www.salesforce.com/content/dam/sfdc-docs/www/logos/logo-salesforce.svg" alt="Salesforce" onerror="this.hidden=true; document.getElementById('logo-fallback').hidden=false;">
+        <span id="logo-fallback" class="logo-fallback" hidden>Salesforce</span>
+        <div><h1 id="chat-title">Servicing Agent</h1><p>Your everyday support, simplified.</p></div>
+      </div>
+      <button id="close-chat" type="button" aria-label="Close chat">&times;</button>
+    </header>
+    <section class="intro" aria-label="Available support">
+      <div><strong>How can I help you today?</strong><p>Ask a question. Check an account. Get support.</p></div>
+      <div class="capabilities"><span>Account details</span><span>Support tickets</span><span>Policy answers</span></div>
+    </section>
+    <div id="messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+    <div class="suggestions" aria-label="Suggested questions">
+      <button type="button" data-prompt="What is my account balance?">Check my balance</button>
+      <button type="button" data-prompt="What are the support hours?">Support hours</button>
+      <button type="button" data-prompt="How are duplicate charges handled?">Duplicate charge help</button>
+    </div>
+    <div class="composer">
+      <form id="chat-form">
+        <input id="message-input" aria-label="Your message" placeholder="Ask about your account, tickets, or policies…" maxlength="2000" autocomplete="off" required>
+        <button id="send-button" type="submit"><span>Send</span><span aria-hidden="true">↗</span></button>
+      </form>
+      <footer><span>Independent demo · Fictional customer data · Salesforce integration</span><span>Each message is independent.</span></footer>
+    </div>
+  </main>
+  <button id="chat-launcher" type="button" aria-expanded="false" aria-controls="chat-panel" aria-label="Open support chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2v-10a9 9 0 0 1 18 0Z"/><path d="M7 11h.01M11 11h.01M15 11h.01" stroke-width="3" stroke-linecap="round"/></svg>
+    <span>Chat with us</span>
+  </button>
+  <script>
+    const panel = document.getElementById('chat-panel');
+    const launcher = document.getElementById('chat-launcher');
+    const closeChat = document.getElementById('close-chat');
+    function setChatOpen(open) {
+      panel.hidden = !open;
+      launcher.setAttribute('aria-expanded', String(open));
+      launcher.setAttribute('aria-label', open ? 'Close support chat' : 'Open support chat');
+      if (open) {
+        document.getElementById('message-input').focus();
+        const log = document.getElementById('messages');
+        log.scrollTop = log.scrollHeight;
+      } else {
+        launcher.focus();
+      }
+    }
+    launcher.addEventListener('click', () => setChatOpen(panel.hidden));
+    closeChat.addEventListener('click', () => setChatOpen(false));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !panel.hidden) setChatOpen(false);
+    });
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const button = document.getElementById('send-button');
+    const suggestions = document.querySelectorAll('[data-prompt]');
+
+    function addMessage(text, role) {
+      const row = document.createElement('div');
+      row.className = `message ${role}`;
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = role === 'user' ? 'YOU' : 'AI';
+      const content = document.createElement('div');
+      content.className = 'message-content';
+      const speaker = document.createElement('div');
+      speaker.className = 'speaker';
+      speaker.textContent = role === 'user' ? 'YOU' : 'SERVICING AGENT';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      content.append(speaker, bubble);
+      row.append(avatar, content);
+      messages.appendChild(row);
+      messages.scrollTop = messages.scrollHeight;
+      return { row, bubble };
+    }
+
+    addMessage('Hi, I’m your Servicing Agent. I can check your account balance, look up a support ticket, or help you understand a policy. What can I help with?', 'assistant');
+
+    suggestions.forEach(chip => chip.addEventListener('click', () => {
+      if (button.disabled) return;
+      input.value = chip.dataset.prompt;
+      form.requestSubmit();
+    }));
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message || button.disabled) return;
+      addMessage(message, 'user');
+      input.value = '';
+      button.disabled = true;
+      suggestions.forEach(chip => chip.disabled = true);
+      const pending = addMessage('Thinking…', 'assistant');
+      pending.row.classList.add('pending');
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        const data = await response.json();
+        if (data.reply == null) throw new Error('The server returned no reply');
+        pending.bubble.textContent = typeof data.reply === 'string' ? data.reply : JSON.stringify(data.reply);
+      } catch (error) {
+        console.error('Chat request failed:', error);
+        pending.row.classList.add('error');
+        pending.bubble.textContent = 'I couldn’t complete that request. Please try again in a moment.';
+        input.value = message;
+      } finally {
+        pending.row.classList.remove('pending');
+        button.disabled = false;
+        suggestions.forEach(chip => chip.disabled = false);
+        messages.scrollTop = messages.scrollHeight;
+        if (!panel.hidden) input.focus();
+      }
+    });
+  </script>
+</body>
+</html>

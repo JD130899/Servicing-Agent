@@ -1,0 +1,57 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: servicing-backend
+  namespace: servicing-demo
+spec:
+  timeoutSec: 120
+  healthCheck:
+    type: HTTP
+    requestPath: /healthz
+    port: 8000
+  iap:
+    enabled: true
+    oauthclientCredentials:
+      secretName: servicing-iap-oauth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servicing-agent
+  namespace: servicing-demo
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"default": "servicing-backend"}'
+spec:
+  type: ClusterIP
+  selector:
+    app: servicing-agent
+  ports:
+    - port: 80
+      targetPort: http
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: servicing-certificate
+  namespace: servicing-demo
+spec:
+  domains:
+    - servicing-agent.136.68.57.91.sslip.io
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: servicing-https
+  namespace: servicing-demo
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: servicing-agent-https-ip
+    networking.gke.io/managed-certificates: servicing-certificate
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  defaultBackend:
+    service:
+      name: servicing-agent
+      port:
+        number: 80

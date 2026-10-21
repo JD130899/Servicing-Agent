@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servicing-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: servicing-agent
+  template:
+    metadata:
+      labels:
+        app: servicing-agent
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: us-central1-docker.pkg.dev/valuebuddy-demo/valuebuddy-images/servicing-agent:v2
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: servicing-env
+          env:
+            - name: SNOWFLAKE_PRIVATE_KEY_FILE
+              value: /run/secrets/snowflake_key.p8
+            - name: SALESFORCE_PRIVATE_KEY_FILE
+              value: /run/secrets/salesforce.key
+          volumeMounts:
+            - name: keys
+              mountPath: /run/secrets
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+        - name: tools
+          image: us-central1-docker.pkg.dev/valuebuddy-demo/valuebuddy-images/servicing-agent:v2
+          imagePullPolicy: IfNotPresent
+          command: ["python", "mcp_server.py"]
+          envFrom:
+            - secretRef:
+                name: servicing-env
+          env:
+            - name: SNOWFLAKE_PRIVATE_KEY_FILE
+              value: /run/secrets/snowflake_key.p8
+            - name: SALESFORCE_PRIVATE_KEY_FILE
+              value: /run/secrets/salesforce.key
+          volumeMounts:
+            - name: keys
+              mountPath: /run/secrets
+              readOnly: true
+          startupProbe:
+            exec:
+              command: ["python", "-c", "import socket; socket.create_connection(('127.0.0.1',8002),2).close()"]
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            exec:
+              command: ["python", "-c", "import socket; socket.create_connection(('127.0.0.1',8002),2).close()"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import socket; socket.create_connection(('127.0.0.1',8002),2).close()"]
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: keys
+          secret:
+            secretName: servicing-keys
+            defaultMode: 0440
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servicing-agent
+spec:
+  type: ClusterIP
+  selector:
+    app: servicing-agent
+  ports:
+    - port: 80
+      targetPort: http
